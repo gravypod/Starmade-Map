@@ -3,7 +3,7 @@
    Description: This script generate a 3D Starmap for starmade
    License: http://creativecommons.org/licenses/by/3.0/legalcode
 
-   Version: 0.2							Date: 2013-12-28
+   FileVersion: 0.3							Date: 2013-12-28
    By Blackcancer
   
    website: 
@@ -21,9 +21,9 @@ var StarOS_Map = function(options){
 			this.DEFAULT_HEIGHT = 600;
 			this.DEFAULT_FS_KEY = "f";
 			this.DEFAULT_SPAWN  = {
-				x: 2,
-				y: 2,
-				z: 2
+				x: 8,
+				y: 8,
+				z: 8
 			};
 			this.DEFAULT_SHOW_SHIP = false;
 			this.DEFAULT_SHOW_ASTEROID = false;
@@ -31,6 +31,9 @@ var StarOS_Map = function(options){
 			this.entityDictionary = new Object;
 			this.factionDictionary = new Object;
 			this.mouseMove = new Object;
+			this.chunk = new Array;
+			this.chunkSize = 16;
+			this.currentSystem = [0, 0, 0];
 			this.sectorSize = 1300;
 			this.intersected = false;
 			this.container = $('#' + this.settings.parentId);
@@ -67,20 +70,21 @@ var StarOS_Map = function(options){
 
 			if(this.settings.spawn != undefined){
 				this.stageSpawn = {
-					x: parseInt(this.settings.spawn.x || this.DEFAULT_SPAWN.x),
-					y: parseInt(this.settings.spawn.y || this.DEFAULT_SPAWN.y),
-					z: parseInt(this.settings.spawn.z || this.DEFAULT_SPAWN.z)
+					x: parseInt((this.settings.spawn.x * this.sectorSize) + (this.sectorSize / 2) || (this.DEFAULT_SPAWN.x * this.sectorSize) + (this.sectorSize / 2)),
+					y: parseInt((this.settings.spawn.y * this.sectorSize) + (this.sectorSize / 2) || (this.DEFAULT_SPAWN.y * this.sectorSize) + (this.sectorSize / 2)),
+					z: parseInt((this.settings.spawn.z * this.sectorSize) + (this.sectorSize / 2) || (this.DEFAULT_SPAWN.z * this.sectorSize) + (this.sectorSize / 2))
 				}
 			} else {
 				this.stageSpawn = {
-					x: this.DEFAULT_SPAWN.x,
-					y: this.DEFAULT_SPAWN.y,
-					z: this.DEFAULT_SPAWN.z
+					x: (this.DEFAULT_SPAWN.x * this.sectorSize) + (this.sectorSize / 2),
+					y: (this.DEFAULT_SPAWN.y * this.sectorSize) + (this.sectorSize / 2),
+					z: (this.DEFAULT_SPAWN.z * this.sectorSize) + (this.sectorSize / 2)
 				}
 			}
 
 			this.initWebGL();
 			this.setupEvent();
+			this.systemSelector();
 
 			this.animate = this.animate.bind(this);
 			this.animate();
@@ -115,7 +119,7 @@ var StarOS_Map = function(options){
 			this.container.height(this.stageHeight);
 
 			this.initSkybox();
-			this.initEntity();
+			this.loadChunk();
 			this.initFaction();
 		},
 
@@ -135,51 +139,67 @@ var StarOS_Map = function(options){
 				skyBox = new THREE.Mesh(geometry, material);
 			this.scene.add(skyBox);
 		},
-
-		StarOS_Map.prototype.initEntity = function(){
-			var StarMap = this;
-			jqxhrEntity = $.getJSON('entities.json')
+		
+		StarOS_Map.prototype.loadChunk = function(){
+			var StarMap = this,
+				jqxhr = $.getJSON('entities.json')
 			.done(function(json){
-				if(!StarMap.stageShowShip){
-					$.each(json, function(i){
-					   if(json[i].type == 5 ){
-						   delete json[i];
-					   }
-					});
-				}
-				if(!StarMap.stageShowAsteroid){
-					$.each(json, function(i){
-					   if(json[i].type == 3 ){
-						   delete json[i];
-					   }
-					});
-				}
-				$.each(json, function(i){
-					entity = new StarmapEntity();
-					entity.creator	= json[i].creator;
-					entity.fid		= json[i].fid;
-					entity.genId	= json[i].genId;
-					entity.lastMod	= json[i].lastMod;
-					entity.mass		= json[i].mass;
-					entity.name		= json[i].name;
-					entity.position.x = StarMap.sectorSize * json[i].sPos.x + json[i].localPos.x;
-					entity.position.y = StarMap.sectorSize * json[i].sPos.y + json[i].localPos.y;
-					entity.position.z = StarMap.sectorSize * json[i].sPos.z + json[i].localPos.z;
-					entity.power	= json[i].pw;
-					entity.sector.x	= json[i].sPos.x;
-					entity.sector.y	= json[i].sPos.y;
-					entity.sector.z	= json[i].sPos.z;
-					entity.shield	= json[i].sh;
-					entity.type		= json[i].type;
-					entity.uid		= json[i].uid;
-					
-					entity.init();
-					entity.generate(StarMap.camera, StarMap.scene);
-					StarMap.entityDictionary[entity.uid] = entity;
+				var	system = new Array,
+					minChunkCoord = new Array,
+					maxChunkCoord = new Array;
+					isPositive = false;
+				$.each(StarMap.currentSystem, function(i){
+					if(StarMap.currentSystem[i] >= 0){
+						system[i] = StarMap.currentSystem[i] + 1;
+						maxChunkCoord[i] = system[i] * StarMap.chunkSize -1;
+						minChunkCoord[i] = maxChunkCoord[i] - StarMap.chunkSize + 1;
+					} else{
+						system[i] = StarMap.currentSystem[i];
+						maxChunkCoord[i] = system[i] * StarMap.chunkSize;
+						minChunkCoord[i] = maxChunkCoord[i] + StarMap.chunkSize -1;
+					}
+				});
+				$.each(json,function(i){					
+					if(json[i].sPos.x.between(minChunkCoord[0],maxChunkCoord[0])){
+						if(json[i].sPos.y.between(minChunkCoord[1],maxChunkCoord[1])){
+							if(json[i].sPos.z.between(minChunkCoord[2],maxChunkCoord[2])){
+								entity = new StarmapEntity();
+								entity.creator	= json[i].creator;
+								entity.fid		= json[i].fid;
+								entity.genId	= json[i].genId;
+								entity.lastMod	= json[i].lastMod;
+								entity.mass		= json[i].mass;
+								entity.name		= json[i].name;
+								entity.position.x = StarMap.sectorSize * Math.floor(json[i].sPos.x / system[0] ) + json[i].localPos.x;
+								entity.position.y = StarMap.sectorSize * Math.floor(json[i].sPos.y / system[1] ) + json[i].localPos.y;
+								entity.position.z = StarMap.sectorSize * Math.floor(json[i].sPos.z / system[1] ) + json[i].localPos.z;
+								entity.power	= json[i].pw;
+								entity.sector.x	= json[i].sPos.x;
+								entity.sector.y	= json[i].sPos.y;
+								entity.sector.z	= json[i].sPos.z;
+								entity.shield	= json[i].sh;
+								entity.type		= json[i].type;
+								entity.uid		= json[i].uid;
+								entity.init();
+								entity.generate(StarMap.camera, StarMap.scene);
+								
+								StarMap.entityDictionary[entity.uid] = entity;
+								StarMap.chunk.push(entity.sprite);
+							}
+						}
+					}
 				});
 			})
 			.fail(function(result, err_code, err){console.debug("Ajax error: " + err);})
 			.always(function(){});
+		},
+		
+		StarOS_Map.prototype.unloadChunk = function(){
+			var StarMap = this;
+			$.each(this.chunk, function(i){
+				StarMap.scene.remove(StarMap.chunk[i]);
+			});
+			this.chunk = [];
 		},
 		
 		StarOS_Map.prototype.initFaction = function(){
@@ -236,9 +256,7 @@ var StarOS_Map = function(options){
 			this.mouseMove.y = -((event.clientY - $canvas.offset().top) / $canvas.height()) * 2 + 1;
 		},
 
-		StarOS_Map.prototype.onMouseDown = function(event){
-			event.preventDefault();
-			
+		StarOS_Map.prototype.onMouseDown = function(event){			
 			var vector = new THREE.Vector3(this.mouseMove.x, this.mouseMove.y, 0.5);
 			this.projector.unprojectVector(vector, this.camera);
 			var ray = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
@@ -309,6 +327,58 @@ var StarOS_Map = function(options){
 			
 			$parent.show();
 		},
+		
+		StarOS_Map.prototype.systemSelector = function(){
+			var $parent = $('#sysSelect'),
+				$xLabel = $('<label type="text" id="sysSelectLX"/>'),
+				$xField = $('<input type="text" id="sysSelectFX"/>'),
+				$yLabel = $('<label type="text" id="sysSelectLY"/>'),
+				$yField = $('<input type="text" id="sysSelectFY"/>'),
+				$zLabel = $('<label type="text" id="sysSelectLZ"/>'),
+				$zField = $('<input type="text" id="sysSelectFZ"/>'),
+				$button = $('<input type="submit" id="sysSelectBtn"/>'),
+				StarMap = this;
+				
+			$xLabel.text("x:");
+			$xField.val("0");
+			$yLabel.text("y:");
+			$yField.val("0");
+			$zLabel.text("z:");
+			$zField.val("0");
+			$button.val("Search");
+			
+			$xField.keyup(function () { 
+				this.value = this.value.replace(/[^0-9\.]/g,'');
+			});
+			$yField.keyup(function () { 
+				this.value = this.value.replace(/[^0-9\.-]/g,'');
+			});;
+			$zField.keyup(function () { 
+				this.value = this.value.replace(/[^0-9\.\-]/g,'');
+			});
+			
+			$button.click(function(e){
+				e.preventDefault();
+				$xField.val() == "" ? $xField.val(0) : $xField.val();
+				$yField.val() == "" ? $yField.val(0) : $xField.val();
+				$zField.val() == "" ? $zField.val(0) : $xField.val();
+				
+				StarMap.currentSystem[0] = parseInt($xField.val());
+				StarMap.currentSystem[1] = parseInt($yField.val());
+				StarMap.currentSystem[2] = parseInt($zField.val());
+				
+				StarMap.unloadChunk();
+				StarMap.loadChunk();
+			});
+			
+			$parent.append($xLabel);
+			$parent.append($xField);
+			$parent.append($yLabel);
+			$parent.append($yField);
+			$parent.append($zLabel);
+			$parent.append($zField);
+			$parent.append($button);
+		},
 
 		StarOS_Map.prototype.animate = function(){
   			requestAnimationFrame(StarOS_Map.prototype.animate.bind(this));
@@ -354,4 +424,8 @@ textWidth = function(text){
 	var width = $('body').find('span:last').width();
 	$('body').find('span:last').remove();
 	return width;
+};
+
+Number.prototype.between = function(first,last){
+    return (first < last ? this >= first && this <= last : this >= last && this <= first);
 };

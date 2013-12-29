@@ -3,13 +3,12 @@
    Description: This script id the class object for entity
    License: http://creativecommons.org/licenses/by/3.0/legalcode
 
-   Version: 0.2							Date: 2013-12-28
+   FileVersion: 0.3							Date: 2013-12-28
    By Blackcancer
   
    website: 
    support: blackcancer@initsysrev.net
 */
-
 var LoadedTextures = {
 	shop: new THREE.ImageUtils.loadTexture("res/img/starmap/shop.png"),
 	station: new THREE.ImageUtils.loadTexture("res/img/starmap/station.png"),
@@ -24,6 +23,7 @@ var LoadedTextures = {
 		unknown: new THREE.ImageUtils.loadTexture("res/img/starmap/fallPlanet.png"),
 	}
 };
+
 
 var StarmapEntity = function(){
 	this.creator = "unknown",
@@ -114,15 +114,15 @@ var StarmapEntity = function(){
 			if(this.fid == -1){
 				material.setValues({color: 0xff0000});
 			}
-		var	sprite	 = new THREE.Sprite(material);
+			this.sprite	 = new THREE.Sprite(material);
 			
 			this.position.x = this.position.x / 4.7;
 			this.position.y = this.position.y / 4.7;
 			this.position.z = this.position.z / 4.7;
-			sprite.position = this.position;
-			sprite.uid = this.uid;
-			sprite.scale.set(this.scale[0], this.scale[1], this.scale[2]);
+			this.sprite.position = this.position;
+			this.sprite.uid = this.uid;
+			this.sprite.scale.set(this.scale[0], this.scale[1], this.scale[2]);
 			
-			scene.add(sprite);
+			scene.add(this.sprite);
 	}
 }

@@ -13,7 +13,7 @@
 var StarOS_Map = function(options){
 	this.settings = options || {};
 	if(!this.settings.parentId){
-		alert("CCP Starmap: You must specify the parentElementId parameter.");
+		alert("StarOS Map: You must specify the parentId parameter.");
 	} 
 	else {
 		StarOS_Map.prototype.init = function(){
@@ -31,10 +31,12 @@ var StarOS_Map = function(options){
 			this.entityDictionary = new Object;
 			this.factionDictionary = new Object;
 			this.mouseMove = new Object;
+			this.spawnPos = new Object;
 			this.chunk = new Array;
 			this.chunkSize = 16;
 			this.currentSystem = [0, 0, 0];
 			this.sectorSize = 1300;
+			this.mapScale = 4.7;
 			this.intersected = false;
 			this.container = $('#' + this.settings.parentId);
 			this.showInfo = false;
@@ -70,18 +72,23 @@ var StarOS_Map = function(options){
 
 			if(this.settings.spawn != undefined){
 				this.stageSpawn = {
-					x: parseInt((this.settings.spawn.x * this.sectorSize) + (this.sectorSize / 2) || (this.DEFAULT_SPAWN.x * this.sectorSize) + (this.sectorSize / 2)),
-					y: parseInt((this.settings.spawn.y * this.sectorSize) + (this.sectorSize / 2) || (this.DEFAULT_SPAWN.y * this.sectorSize) + (this.sectorSize / 2)),
-					z: parseInt((this.settings.spawn.z * this.sectorSize) + (this.sectorSize / 2) || (this.DEFAULT_SPAWN.z * this.sectorSize) + (this.sectorSize / 2))
+					x: parseInt(this.settings.spawn.x || this.DEFAULT_SPAWN.x),
+					y: parseInt(this.settings.spawn.y || this.DEFAULT_SPAWN.y),
+					z: parseInt(this.settings.spawn.z || this.DEFAULT_SPAWN.z)
 				}
 			} else {
 				this.stageSpawn = {
-					x: (this.DEFAULT_SPAWN.x * this.sectorSize) + (this.sectorSize / 2),
-					y: (this.DEFAULT_SPAWN.y * this.sectorSize) + (this.sectorSize / 2),
-					z: (this.DEFAULT_SPAWN.z * this.sectorSize) + (this.sectorSize / 2)
+					x: this.DEFAULT_SPAWN.x,
+					y: this.DEFAULT_SPAWN.y,
+					z: this.DEFAULT_SPAWN.z
 				}
 			}
 
+			this.spawnPos = {
+				x: ((this.stageSpawn.x * this.sectorSize) + (this.sectorSize / 2)) / this.mapScale,
+				y: ((this.stageSpawn.y * this.sectorSize) + (this.sectorSize / 2)) / this.mapScale,
+				z: ((this.stageSpawn.z * this.sectorSize) + (this.sectorSize / 2)) / this.mapScale
+			};
 			this.initWebGL();
 			this.setupEvent();
 			this.systemSelector();
@@ -109,8 +116,8 @@ var StarOS_Map = function(options){
 			}
 
 			this.scene.add(this.camera);
-			this.camera.position.set(this.stageSpawn.x, this.stageSpawn.y, 10000);
-			this.camera.lookAt(this.stageSpawn);
+			this.camera.position.set(this.spawnPos.x, this.spawnPos.y, 10000);
+			this.camera.lookAt(this.spawnPos);
 
 			this.renderer.setSize(this.stageWidth, this.stageHeight);
 			this.renderer.domElement.id = "StarmapRenderer";
@@ -159,6 +166,20 @@ var StarOS_Map = function(options){
 						minChunkCoord[i] = maxChunkCoord[i] + StarMap.chunkSize -1;
 					}
 				});
+				if(!StarMap.stageShowShip){
+					$.each(json,function(i){
+					   if(json[i].type == 5 ){
+						   delete json[i];
+					   }
+					});
+				}
+				if(!StarMap.stageShowAsteroid){
+					$.each(json,function(i){
+					   if(json[i].type == 3 ){
+						   delete json[i];
+					   }
+					});
+				}
 				$.each(json,function(i){					
 					if(json[i].sPos.x.between(minChunkCoord[0],maxChunkCoord[0])){
 						if(json[i].sPos.y.between(minChunkCoord[1],maxChunkCoord[1])){
@@ -181,7 +202,7 @@ var StarOS_Map = function(options){
 								entity.type		= json[i].type;
 								entity.uid		= json[i].uid;
 								entity.init();
-								entity.generate(StarMap.camera, StarMap.scene);
+								entity.generate(StarMap.camera, StarMap.scene, StarMap.mapScale);
 								
 								StarMap.entityDictionary[entity.uid] = entity;
 								StarMap.chunk.push(entity.sprite);
@@ -370,6 +391,7 @@ var StarOS_Map = function(options){
 				StarMap.unloadChunk();
 				StarMap.loadChunk();
 			});
+			$parent.css('left', this.container.width() + this.container.offset().left - $parent.width() - 10 + 'px');
 			
 			$parent.append($xLabel);
 			$parent.append($xField);
@@ -393,8 +415,8 @@ var StarOS_Map = function(options){
 			}
 			
 			if (this.keyboard.pressed("space")){
-				this.camera.position.set(this.stageSpawn.x, this.stageSpawn.y, 1000);
-				this.camera.lookAt(this.stageSpawn);
+				this.camera.position.set(this.spawnPos.x, this.spawnPos.y, 10000);
+				this.camera.lookAt(this.spawnPos);
 			}
 			
 			this.controls.update();

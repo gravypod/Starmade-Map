@@ -105,7 +105,7 @@ var StarmapEntity = function(){
 		};
 	},
 	
-	StarmapEntity.prototype.generate = function(camera, scene){
+	StarmapEntity.prototype.generate = function(camera, scene, scale){
 			texture	 = this.texture,
 			material = new THREE.SpriteMaterial({
 				map: texture,
@@ -116,9 +116,9 @@ var StarmapEntity = function(){
 			}
 			this.sprite	 = new THREE.Sprite(material);
 			
-			this.position.x = this.position.x / 4.7;
-			this.position.y = this.position.y / 4.7;
-			this.position.z = this.position.z / 4.7;
+			this.position.x = this.position.x / scale;
+			this.position.y = this.position.y / scale;
+			this.position.z = this.position.z / scale;
 			this.sprite.position = this.position;
 			this.sprite.uid = this.uid;
 			this.sprite.scale.set(this.scale[0], this.scale[1], this.scale[2]);

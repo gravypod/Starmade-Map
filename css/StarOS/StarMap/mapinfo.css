@@ -11,15 +11,21 @@
 */
 
 @charset "utf-8";
+#mapInfoButton, #mapInfo, #mapInfPic, #mapInfName, #mapInfType, #mapInfPos, #mapInfFac, #mapInfMass, #mapInfPow, #mapInfSh, #mapInfShRate{
+	position: absolute;
+}
+
+#mapInfType, #mapInfPos, #mapInfFac, #mapInfMass, #mapInfPow, #mapInfSh, #mapInfShRate{
+	left: 5px;
+}
+
 #mapInfoButton{
 	background-image: url(../../../res/img/starmap/buttonUnroll.png);
-	position: absolute;
 	width: 220px;
 	height:	20px;
 }
 #mapInfo{
 	background-image: url(../../../res/img/starmap/infobox.png);
-	position: absolute;
 	width: 220px;
 	height:	270px;
 	margin:0px; 
@@ -31,52 +37,39 @@
 }
 
 	#mapInfPic{
-		position: absolute;
 		left: 40px;
 		top: 5px;
 	}
 	
 	#mapInfName{
-		position: absolute;
 		top:115px;
 		font-size: 12px;
 	}
+	
 	#mapInfType{
-		position: absolute;
-		left: 5px;
 		top: 150px;
 	}
+	
 	#mapInfPos{
-		position: absolute;
-		left: 5px;
 		top: 165px;
 	}
+	
 	#mapInfFac{
-		position: absolute;
-		left: 5px;
 		top: 180px;
 	}
 	
 	#mapInfMass{
-		position: absolute;
-		left: 5px;
 		top: 200px;
 	}
 	
 	#mapInfPow{
-		position: absolute;
-		left: 5px;
 		top: 215px;
 	}
 	
 	#mapInfSh{
-		position: absolute;
-		left: 5px;
 		top: 230px;
 	}
 	
 	#mapInfShRate{
-		position: absolute;
-		left: 5px;
 		top: 245px;
 	}

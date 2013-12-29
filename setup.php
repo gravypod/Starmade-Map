@@ -11,8 +11,8 @@
 	*/
 	include_once "includes/SMDecoder.php";
 	
-	if(count($argv) < 3){
-		echo "Enter the directory of your starmade install followed by a list of types you would like excluded.\n";
+	if(count($argv) < 2){
+		echo "Enter the directory of your starmade install followed by an optional list of types you would like excluded.\n";
 		echo "The recomended example is: \"php " . implode(" ", $argv) . " /home/starmade/ 3,4,5\".\n";
 		echo "1 = shops, 2 = space station, 3 = asteroid, 4 = planet, 5 = ships.\n";
 		die();
@@ -42,11 +42,11 @@
 	
 	$serverDatabase = $starmadeDirectory . "server-database/";
 	echo "Now loading entity and player files\n";
-	createEntityDatabase($serverDatabase, $decoder, $excludedTypes);
+	createEntityDatabase($serverDatabase, $decoder);
 	echo "Now loading faction information\n";
 	createFactionDatabase($serverDatabase, $decoder);
 	
-	function createEntityDatabase($dir, $decoder, $types) {
+	function createEntityDatabase($dir, $decoder) {
 		
 		global $excludedTypes;
 		

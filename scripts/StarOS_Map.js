@@ -281,7 +281,7 @@ var StarOS_Map = function(options){
 			$parent.empty();
 			
 			$img = $('<img id="mapInfPic" class="mapInfo"/>');
-			$img.attr('src', entity.texture);
+			$img.attr('src', entity.sourceFile);
 			$img.attr('width', entity.scale[0]);
 			$img.attr('height', entity.scale[1]);
 			

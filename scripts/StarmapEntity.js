@@ -10,6 +10,25 @@
    support: blackcancer@initsysrev.net
 */
 
+var Textures = {
+	
+}
+var LoadedTextures = {
+	shop: new THREE.ImageUtils.loadTexture("res/img/starmap/shop.png"),
+	station: new THREE.ImageUtils.loadTexture("res/img/starmap/station.png"),
+	asteroid: new THREE.ImageUtils.loadTexture("res/img/starmap/asteroid.png"),
+	ship: new THREE.ImageUtils.loadTexture("res/img/starmap/ship.png"),
+	planet: {
+		red: new THREE.ImageUtils.loadTexture("res/img/starmap/redPlanet.png"),
+		terran: new THREE.ImageUtils.loadTexture("res/img/starmap/terranPlanet.png"),
+		desert: new THREE.ImageUtils.loadTexture("res/img/starmap/desertPlanet.png"),
+		alien: new THREE.ImageUtils.loadTexture("res/img/starmap/alienPlanet.png"), 
+		ice: new THREE.ImageUtils.loadTexture("res/img/starmap/icePlanet.png"),
+		unknown: new THREE.ImageUtils.loadTexture(this.texture),
+	}
+};
+
+
 var StarmapEntity = function(){
 	this.creator = "unknown",
 	this.fid = 0,
@@ -38,51 +57,51 @@ var StarmapEntity = function(){
 		switch(this.type){
 			case 1:
 				this.name = "Shop";
-				this.texture = "res/img/starmap/shop.png";
+				this.texture = LoadedTextures.shop;
 				this.planeScale = [64, 120, 1.0];
 				this.typeLabel = "Shop";
 				break;
 			case 2:
-				this.texture = "res/img/starmap/station.png";
+				this.texture = LoadedTextures.station;
 				this.typeLabel = "Station";
 				break;
 			case 3:
 				this.name = "Asteroid";
 				this.scale = [64, 64, 1.0]
 				this.planeScale = this.scale;
-				this.texture = "res/img/starmap/asteroid.png";
+				this.texture = LoadedTextures.asteroid;
 				this.typeLabel = "Asteroid";
 				break;
 			case 4:
 				switch(this.genId){
 					case 0:
-						this.texture = "res/img/starmap/redPlanet.png";
+						this.texture = LoadedTextures.planet.red;
 						this.typeLabel = "Red planet";
 						break;
 					case 1:
-						this.texture = "res/img/starmap/terranPlanet.png";
+						this.texture = LoadedTextures.planet.terran;
 						this.typeLabel = "Terran planet";
 						break;
 					case 2:
-						this.texture = "res/img/starmap/desertPlanet.png";
+						this.texture = LoadedTextures.planet.desert;
 						this.typeLabel = "Desert planet";
 						break;
 					case 3:
-						this.texture = "res/img/starmap/alienPlanet.png";
+						this.texture = LoadedTextures.planet.alien;
 						this.typeLabel = "Alien planet";
 						break;
 					case 4:
-						this.texture = "res/img/starmap/icePlanet.png";
+						this.texture = LoadedTextures.planet.ice;
 				this.typeLabel = "Ice planet";
 						break;
 					default:
-						this.texture = "res/img/starmap/fallPlanet.png";
+						this.texture = LoadedTextures.planet.unknown;
 						this.typeLabel = "Unknown planet";
 						break;
 				};
 				break;
 			case 5:
-				this.texture = "res/img/starmap/ship.png";
+				this.texture = LoadedTextures.ship;
 				this.typeLabel = "Ship";
 				break;
 			default:
@@ -93,7 +112,7 @@ var StarmapEntity = function(){
 	StarmapEntity.prototype.generate = function(camera, scene){
 		var geometry = new THREE.PlaneGeometry(this.planeScale[0], this.planeScale[1], 1, 1),
 			plane	 = new THREE.Mesh(geometry),
-			texture	 = new THREE.ImageUtils.loadTexture(this.texture),
+			texture	 = this.texture,
 			material = new THREE.SpriteMaterial({
 				map: texture,
 				useScreenCoordinates: false

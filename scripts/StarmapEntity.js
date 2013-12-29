@@ -3,16 +3,13 @@
    Description: This script id the class object for entity
    License: http://creativecommons.org/licenses/by/3.0/legalcode
 
-   Version: 0.1								Date: 2013-12-28
+   Version: 0.2							Date: 2013-12-28
    By Blackcancer
   
    website: 
    support: blackcancer@initsysrev.net
 */
 
-var Textures = {
-	
-}
 var LoadedTextures = {
 	shop: new THREE.ImageUtils.loadTexture("res/img/starmap/shop.png"),
 	station: new THREE.ImageUtils.loadTexture("res/img/starmap/station.png"),
@@ -24,10 +21,9 @@ var LoadedTextures = {
 		desert: new THREE.ImageUtils.loadTexture("res/img/starmap/desertPlanet.png"),
 		alien: new THREE.ImageUtils.loadTexture("res/img/starmap/alienPlanet.png"), 
 		ice: new THREE.ImageUtils.loadTexture("res/img/starmap/icePlanet.png"),
-		unknown: new THREE.ImageUtils.loadTexture(this.texture),
+		unknown: new THREE.ImageUtils.loadTexture("res/img/starmap/fallPlanet.png"),
 	}
 };
-
 
 var StarmapEntity = function(){
 	this.creator = "unknown",
@@ -110,8 +106,6 @@ var StarmapEntity = function(){
 	},
 	
 	StarmapEntity.prototype.generate = function(camera, scene){
-		var geometry = new THREE.PlaneGeometry(this.planeScale[0], this.planeScale[1], 1, 1),
-			plane	 = new THREE.Mesh(geometry),
 			texture	 = this.texture,
 			material = new THREE.SpriteMaterial({
 				map: texture,
@@ -125,13 +119,10 @@ var StarmapEntity = function(){
 			this.position.x = this.position.x / 4.7;
 			this.position.y = this.position.y / 4.7;
 			this.position.z = this.position.z / 4.7;
-			plane.position = sprite.position = this.position;
-			plane.quaternion = camera.quaternion;
-			plane.uid = sprite.uid = this.uid;
-			plane.visible = false;
+			sprite.position = this.position;
+			sprite.uid = this.uid;
 			sprite.scale.set(this.scale[0], this.scale[1], this.scale[2]);
 			
-			scene.add(plane);
 			scene.add(sprite);
 	}
 }

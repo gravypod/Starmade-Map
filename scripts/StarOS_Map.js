@@ -3,7 +3,7 @@
    Description: This script generate a 3D Starmap for starmade
    License: http://creativecommons.org/licenses/by/3.0/legalcode
 
-   Version: 0.1								Date: 2013-12-28
+   Version: 0.2							Date: 2013-12-28
    By Blackcancer
   
    website: 
@@ -26,6 +26,7 @@ var StarOS_Map = function(options){
 				z: 2
 			};
 			this.DEFAULT_SHOW_SHIP = false;
+			this.DEFAULT_SHOW_ASTEROID = false;
 
 			this.entityDictionary = new Object;
 			this.factionDictionary = new Object;
@@ -39,6 +40,7 @@ var StarOS_Map = function(options){
 			this.stageHeight = parseInt(this.settings.height || this.DEFAULT_HEIGHT);
 			this.stageFsKey = this.settings.FsKey || this.DEFAULT_FS_KEY;
 			this.stageShowShip = this.settings.showShip || this.DEFAULT_SHOW_SHIP;
+			this.stageShowAsteroid = this.settings.showAsteroid || this.DEFAULT_SHOW_ASTEROID;
 
 			this.DEFAULT_VIEW = {
 				ASPECT: this.stageWidth / this.stageHeight,
@@ -136,45 +138,45 @@ var StarOS_Map = function(options){
 
 		StarOS_Map.prototype.initEntity = function(){
 			var StarMap = this;
-			jqxhrEntity = $.ajax({
-				url:	  'entities.json',
-				type:	  'GET',
-				dataType: 'json'
-			})
+			jqxhrEntity = $.getJSON('entities.json')
 			.done(function(json){
 				if(!StarMap.stageShowShip){
-					var i = json.length;
-					while(i--){
-					   if(json[i].type === "5" ){
-						   json.splice(i,1);
+					$.each(json, function(i){
+					   if(json[i].type == 5 ){
+						   delete json[i];
 					   }
-					}
+					});
 				}
-				for(i = 0; i < json.length; i++){
-					sPos = json[i].sPos.split(',');
-					localPos = json[i].localPos.split(',');
+				if(!StarMap.stageShowAsteroid){
+					$.each(json, function(i){
+					   if(json[i].type == 3 ){
+						   delete json[i];
+					   }
+					});
+				}
+				$.each(json, function(i){
 					entity = new StarmapEntity();
 					entity.creator	= json[i].creator;
-					entity.fid		= parseInt(json[i].fid);
-					entity.genId	= parseInt(json[i].genID);
+					entity.fid		= json[i].fid;
+					entity.genId	= json[i].genId;
 					entity.lastMod	= json[i].lastMod;
-					entity.mass		= parseFloat(json[i].mass);
+					entity.mass		= json[i].mass;
 					entity.name		= json[i].name;
-					entity.position.x = StarMap.sectorSize * parseInt(sPos[0]) + parseInt(localPos[0]);
-					entity.position.y = StarMap.sectorSize * parseInt(sPos[1]) + parseInt(localPos[1]);
-					entity.position.z = StarMap.sectorSize * parseInt(sPos[2]) + parseInt(localPos[2]);
-					entity.power	= parseFloat(json[i].pw);
-					entity.sector.x	= parseInt(sPos[0]);
-					entity.sector.y	= parseInt(sPos[1]);
-					entity.sector.z	= parseInt(sPos[2]);
-					entity.shield	= parseFloat(json[i].sh);
-					entity.type		= parseInt(json[i].type);
-					entity.uid		= json[i].UID;
+					entity.position.x = StarMap.sectorSize * json[i].sPos.x + json[i].localPos.x;
+					entity.position.y = StarMap.sectorSize * json[i].sPos.y + json[i].localPos.y;
+					entity.position.z = StarMap.sectorSize * json[i].sPos.z + json[i].localPos.z;
+					entity.power	= json[i].pw;
+					entity.sector.x	= json[i].sPos.x;
+					entity.sector.y	= json[i].sPos.y;
+					entity.sector.z	= json[i].sPos.z;
+					entity.shield	= json[i].sh;
+					entity.type		= json[i].type;
+					entity.uid		= json[i].uid;
 					
 					entity.init();
 					entity.generate(StarMap.camera, StarMap.scene);
 					StarMap.entityDictionary[entity.uid] = entity;
-				}
+				});
 			})
 			.fail(function(result, err_code, err){console.debug("Ajax error: " + err);})
 			.always(function(){});
@@ -182,27 +184,9 @@ var StarOS_Map = function(options){
 		
 		StarOS_Map.prototype.initFaction = function(){
 			var StarMap = this;
-			jqxhrFaction = $.ajax({
-				url: 'factions.json',
-				type: 'GET',
-				dataType: 'json'
-			})
+			jqxhrFaction = $.getJSON('factions.json')
 			.done(function(json){
-				for(i = 0; i < json.length; i++){
-					StarMap.factionDictionary[json[i].ID] = {
-						id: json[i].ID,
-						uid: json[i].UID,
-						name: json[i].name,
-						home: json[i].home,
-						ranks:{
-							r0: json[i].r0,
-							r1: json[i].r1,
-							r2: json[i].r2,
-							r3: json[i].r3,
-							r4: json[i].r4
-						}
-					};
-				};
+				StarMap.factionDictionary = json;
 			})
 			.fail(function(result, err_code, err){console.debug("Ajax error: " + err);})
 			.always(function(){});
@@ -281,7 +265,7 @@ var StarOS_Map = function(options){
 			$parent.empty();
 			
 			$img = $('<img id="mapInfPic" class="mapInfo"/>');
-			$img.attr('src', entity.sourceFile);
+			$img.attr('src', entity.texture.sourceFile);
 			$img.attr('width', entity.scale[0]);
 			$img.attr('height', entity.scale[1]);
 			
@@ -333,25 +317,6 @@ var StarOS_Map = function(options){
 		},
 
 		StarOS_Map.prototype.update = function(){
-			var vector = new THREE.Vector3(this.mouseMove.x, this.mouseMove.y, 0.5);
-			this.projector.unprojectVector(vector, this.camera);
-			var ray = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
-			var intersects = ray.intersectObjects(this.scene.children)
-			
-			if(intersects.length > 0){
-				// if the closest object intersected is not the currently stored intersection object
-				if(intersects[0].object != this.intersected){
-					if (this.intersected) 
-						this.intersected.material.color.setHex(this.intersected.currentHex);
-					this.intersected = intersects[0].object;
-					this.intersected.currentHex = this.intersected.material.color.getHex();
-					this.intersected.material.color.setHex(0xffff00);
-				}
-			} else {
-				if(this.intersected)
-					this.intersected.material.color.setHex(this.intersected.currentHex);
-				this.intersected = null;
-			}
 			
 			if(!THREEx.FullScreen.activated()){
 				this.renderer.setSize(this.stageWidth, this.stageHeight);

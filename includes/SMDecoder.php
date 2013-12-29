@@ -7,7 +7,7 @@ header('Content-Type: text/html; charset=UTF-8');
 * @description: Intergrate Starmade files within your own projects.
 * @author: Blackcancer
 * @creation: 2013-08-29
-* @version: 0.3
+* @version: 0.4
 * @license: http://creativecommons.org/licenses/by/3.0/legalcode
 * @support: blackcancer@initsysrev.net
 * @website: 
@@ -31,18 +31,18 @@ class SMDecoder {
 			$type = $this->getType($file);
 			if($type > 0 && $type < 6){
 				//OBJECTS -----------------------------------------------------------
-				$entity['UID'] = $this->getUID($data);			//get Unique ID
-				$entity['Type'] = $type;						//get Type
-				$entity['Name'] = $this->getName($data);		//get Name
+				$entity['uid'] = $this->getUID($data);			//get Unique ID
+				$entity['type'] = $type;						//get Type
+				$entity['name'] = $this->getName($data);		//get Name
 				$entity['mass'] = (float)$this->getMass($data);		//get Mass
-				if($entity['Type'] == 2 || $entity['Type'] == 4 || $entity['Type'] == 5){
+				if($type == 2 || $type == 4 || $type == 5){
 					$entity['pw'] = (double)$this->getPw($data);		//get Power Capacity
 					$entity['sh'] = (double)$this->getSh($data);		//get Shield Capacity
 				} else {
 					$entity['pw'] = (double)0;					//set Power Capacity 0
 					$entity['sh'] = (double)0;					//set Shield Capacity 0
 				}
-				$entity['FactionID'] = $this->getFID($data);	//get Faction ID
+				$entity['fid'] = $this->getFID($data);	//get Faction ID
 				$creation = $this->getCreation($data);
 				if($creation[0] == chr(0)){
 					$creation[0] = "<system>";
@@ -50,36 +50,35 @@ class SMDecoder {
 				if($creation[1] == chr(0)){
 					$creation[1] = "";
 				}
-				$entity['Creator'] = $creation[0];				//get Creator
-				$entity['Last_Mod'] = $creation[1];				//get Last_Mod
+				$entity['creator'] = $creation[0];				//get Creator
+				$entity['lastMod'] = $creation[1];				//get Last_Mod
 				$entity['sPos'] = $this->getSecPos($data);		//get sPos
-				$transform = $this->getTransform($data, $entity['Type']);
+				$transform = $this->getTransform($data, $entity['type']);
 				$entity['transformX'] = $transform['x'];		//get transformX
 				$entity['transformY'] = $transform['y'];		//get transformY
 				$entity['transformZ'] = $transform['z'];		//get transformZ
-				$entity['LocalPos'] = $transform['o'];			//get LocalPos
-				$entity['DIM'] = $this->getDim($data);			//get DIM
-				$entity['Gen_ID'] = $creation[2];				//get Gen_ID
+				$entity['localPos'] = $transform['o'];			//get LocalPos
+				$entity['dim'] = $this->getDim($data);			//get DIM
+				$entity['genId'] = $creation[2];				//get Gen_ID
 				//-------------------------------------------------------------------
 				
 			} else if($type == 6){
-				$entity['Type'] = $type;
+				$entity['type'] = $type;
 				$match = preg_match('/(?:PLAYERCHARACTER_)(.+)(?:.ent)/', $file, $matches);
-				$entity['Name'] = $matches[1];
+				$entity['name'] = $matches[1];
 				$entity['mass'] = (float)$this->getMass($data);		//get Mass
 				$entity['sPos'] = $this->getSecPos($data);		//get sPos
 				$transform = $this->getTransform($data, $entity['Type']);
 				$entity['transformX'] = $transform['x'];		//get transformX
 				$entity['transformY'] = $transform['y'];		//get transformY
 				$entity['transformZ'] = $transform['z'];		//get transformZ
-				$entity['LocalPos'] = $transform['o'];			//get LocalPos
+				$entity['localPos'] = $transform['o'];			//get LocalPos
 			} else if($type == 7){
-				$entity['Type'] = $type;
 				$match = preg_match('/(?:PLAYERSTATE_)(.+)(?:.ent)/', $file, $matches);
-				$entity['Name'] = $matches[1];
-				$entity['Credits'] = $this->getCredits($data);
-				$entity['Sector'] = $this->getSector($data);
-				$entity['FactionID'] = $this->getPFac($data);
+				$entity['name'] = $matches[1];
+				$entity['credits'] = $this->getCredits($data);
+				$entity['sector'] = $this->getSector($data);
+				$entity['fid'] = $this->getPFac($data);
 			} else {
 				return -1;
 			}
@@ -106,16 +105,16 @@ class SMDecoder {
 			for ($x = 0; $x < strlen($fdata[1][$i]) -3; $x++){
 				$byte .= sprintf('%08b', ord($fdata[1][$i][$x]));
 			}
-			$faction[$i]['ID'] = $this->bin2Int($byte);
+			$faction[$i]['id'] = $this->bin2Int($byte);
 		}
 		
 		//Get Faction UID, Name and Description
 		preg_match_all('/(?:f0'.chr(248).'\x00)(.+)(?:'.chr(252).')/Us', $data, $fdata);
 		for($i = 0; $i < $fNumber; $i++){
 			$arr = explode (chr(248) ,$fdata[1][$i]);
-			$faction[$i]['UID'] = substr($arr[0], 1);
-			$faction[$i]['Name'] = substr($arr[1], 2);
-			$faction[$i]['Description'] = substr($arr[2], 2);
+			$faction[$i]['uid'] = substr($arr[0], 1);
+			$faction[$i]['name'] = substr($arr[1], 2);
+			$faction[$i]['description'] = substr($arr[2], 2);
 		}
 		
 		//Get Faction members and grade
@@ -130,12 +129,12 @@ class SMDecoder {
 					if($x == count($arr) -1){
 						$arr[$x] = substr($arr[$x], 0, -3);
 					}
-					$fArr[$x]['Name'] = $arr[$x];
-					$fArr[$x]['Rank'] = $rank;
+					$fArr[$x]['name'] = $arr[$x];
+					$fArr[$x]['rank'] = $rank;
 				}
-				$faction[$i]['Member'] = $fArr;
+				$faction[$i]['member'] = $fArr;
 			} else {
-				$faction[$i]['Member'] = array();
+				$faction[$i]['member'] = array();
 			}
 		}
 		
@@ -150,16 +149,16 @@ class SMDecoder {
 				$arr[$x] = substr($arr[$x], 0, -1); //trim function don't remove last NUL char on the 3 first iteration
 				$arr[$x] = trim($arr[$x], "\x00..\x1F");
 			}
-			$faction[$i]['Ranks'] = $arr;
+			$faction[$i]['ranks'] = $arr;
 		}
 		
 		//get home
 		preg_match_all('/(?:home\x00)(.+)(?:\x08)/Us', $data, $fdata);
 		for($i = 0; $i < $fNumber; $i++){
 			if(isset($fdata[1][$i]) && $fdata[1][$i] != chr(0)){
-				$faction[$i]['Home'] = substr($fdata[1][$i], 1);
+				$faction[$i]['home'] = substr($fdata[1][$i], 1);
 			} else {
-				$faction[$i]['Home'] = '';
+				$faction[$i]['home'] = '';
 			}
 		}
 		return $faction;

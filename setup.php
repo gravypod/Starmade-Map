@@ -67,29 +67,12 @@
 			
 			$ent = $decoder->decodeSMFile($entity);
 			
-			$type = $ent['Type'];
+			$type = $ent['type'];
 			
 			if (in_array(intval($type), $excludedTypes)) {
 				continue;
 			}
-			
-			$sectorPosition = $ent['sPos']['x'].','.$ent['sPos']['y'].','.$ent['sPos']['z'];
-			$localPosition = $ent['LocalPos']['x'].','.$ent['LocalPos']['y'].','.$ent['LocalPos']['z'];
-			
-			array_push($entities, array(
-				'UID' => $ent['UID'],
-				'type' => $type,
-				'name' => $ent['Name'],
-				'fid' => $ent['FactionID'],
-				'creator' => $ent['Creator'],
-				'lastMod' => $ent['Last_Mod'],
-				'mass' => $ent['mass'],
-				'pw' => $ent['pw'],
-				'sh' => $ent['sh'],
-				'sPos' => $sectorPosition,
-				'localPos' => $localPosition,
-				'genID' => $ent['Gen_ID']
-			));
+			$entities[$ent["uid"]] = $ent;
 		}
 		file_put_contents("./entities.json", json_encode($entities));
 	}
@@ -100,13 +83,8 @@
 		$players = array();
 		foreach ($playerFiles as $player) {
 			$ent = $decoder->decodeSMFile($player);
-			$sPos = $ent['Sector']['x'] . ',' . $ent['Sector']['y'] . ',' . $ent['Sector']['z'];
-			array_push($players, array(
-				'Name' => $ent['Name'],
-				'Credits' => $ent['Credits'],
-				'Sector' => $sPos,
-				'fid' => $ent['FactionID']
-			));
+			
+			$players[$ent['name']] = $ent;
 		}
 		file_put_contents("./players.json", json_encode($players));
 	}
@@ -116,19 +94,9 @@
 		$factions = array();
 		foreach ($ent as $faction) {
 			
-			array_push($factions, array(
-				'ID' => $faction['ID'],
-				'UID' => $faction['UID'],
-				'name' => $faction['Name'],
-				'home' => $faction['Home'],
-				'r0' => $faction['Rank0'],
-				'r1' => $faction['Rank1'],
-				'r2' => $faction['Rank2'],
-				'r3' => $faction['Rank3'],
-				'r4' => $faction['Rank4']
-			));
+			$factions[$faction['uid']] = $faction;
 		}
-		file_put_contents("./factions.json", json_encode($factions));
+		file_put_contents("./factions.json", json_encode($factions, JSON_FORCE_OBJECT));
 	}
 	
 ?>

@@ -137,9 +137,8 @@ var StarOS_Map = function(options){
 		StarOS_Map.prototype.initEntity = function(){
 			var StarMap = this;
 			jqxhrEntity = $.ajax({
-				url:	  'scripts/php/get/StarOS_getSQL.php',
+				url:	  'entities.json',
 				type:	  'GET',
-				data:	  'getSQL=entity',
 				dataType: 'json'
 			})
 			.done(function(json){
@@ -184,9 +183,8 @@ var StarOS_Map = function(options){
 		StarOS_Map.prototype.initFaction = function(){
 			var StarMap = this;
 			jqxhrFaction = $.ajax({
-				url: 'scripts/php/get/StarOS_getSQL.php',
+				url: 'factions.json',
 				type: 'GET',
-				data: 'getSQL=faction',
 				dataType: 'json'
 			})
 			.done(function(json){

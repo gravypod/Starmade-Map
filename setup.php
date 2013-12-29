@@ -36,7 +36,7 @@
 		5
 	);
 	
-	$starmadeDirectory = $argv[1];
+	$starmadeDirectory = realpath($argv[1]);
 	
 	if (isset($argv[2])) {
 		$excludedTypes = explode(",", $argv[2]);

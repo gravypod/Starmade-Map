@@ -20,8 +20,6 @@
 	
 	$decoder = new SMDecoder();
 	
-	global $excludedTypes;
-	
 	/*
 		1 = shops
 		2 = space station
@@ -31,8 +29,6 @@
 	*/
 	
 	$excludedTypes = array(
-		3, 
-		4,
 		5
 	);
 	
@@ -45,23 +41,30 @@
 	error_reporting(E_ERROR | E_PARSE); // Disable warnings to deal with SMDecoder
 	
 	$serverDatabase = $starmadeDirectory . "server-database/";
-	echo "Now loading player files\n";
-	createPlayerDatabase($serverDatabase, $decoder);
-	echo "Now loading entity files\n";
-	createEntityDatabase($serverDatabase, $decoder);
+	echo "Now loading entity and player files\n";
+	createEntityDatabase($serverDatabase, $decoder, $excludedTypes);
 	echo "Now loading faction information\n";
 	createFactionDatabase($serverDatabase, $decoder);
 	
-	function createEntityDatabase($dir, $decoder) {
+	function createEntityDatabase($dir, $decoder, $types) {
 		
 		global $excludedTypes;
 		
 		$entityFiles = glob($dir . "ENTITY_*", GLOB_NOSORT); // Find all of the playerstate files
 		$entities = array();
+		$players = array();
 		
 		foreach ($entityFiles as $entity) {
 			
-			if (!(strpos($entity, 'ENTITY_PLAYER') === false)) {
+			$ext = pathinfo($entity, PATHINFO_EXTENSION);
+			
+			if (!($ext == "ent")) {
+				continue;
+			}
+			
+			if (!(strpos($entity, 'ENTITY_PLAYER') === false) && !(strpos($entity, 'ENTITY_PLAYERSTATE_') === false) ) {
+				$ent = $decoder->decodeSMFile($entity);
+				$players[$ent['name']] = $ent;
 				continue;
 			}
 			
@@ -72,31 +75,26 @@
 			if (in_array(intval($type), $excludedTypes)) {
 				continue;
 			}
+			
 			$entities[$ent["uid"]] = $ent;
 		}
-		file_put_contents("./entities.json", json_encode($entities));
-	}
-	
-	function createPlayerDatabase($dir, $decoder) {
 		
-		$playerFiles = glob($dir . "ENTITY_PLAYERSTATE_*.ent"); // Find all of the playerstate files
-		$players = array();
-		foreach ($playerFiles as $player) {
-			$ent = $decoder->decodeSMFile($player);
-			
-			$players[$ent['name']] = $ent;
-		}
+		file_put_contents("./entities.json", json_encode($entities));
 		file_put_contents("./players.json", json_encode($players));
+		
 	}
 	
 	function createFactionDatabase($dir, $decoder) {
+		
 		$ent = $decoder->decodeSMFile($dir . "FACTIONS.fac");
 		$factions = array();
+		
 		foreach ($ent as $faction) {
-			
 			$factions[$faction['uid']] = $faction;
 		}
+		
 		file_put_contents("./factions.json", json_encode($factions, JSON_FORCE_OBJECT));
+		
 	}
 	
 ?>

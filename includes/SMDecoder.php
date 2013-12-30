@@ -17,86 +17,93 @@
 		private $null64 = "0000000000000000000000000000000000000000000000000000000000000000";
 		private $nullFloat = 0.0;
 		
-		public $entity = array();
 		public $faction = array();
 		public $catalog = array();
 		
 		public function decodeSMFile($file){
 			$data = file_get_contents($file);
 			$ext = pathinfo($file, PATHINFO_EXTENSION);
-			
-			if($ext == "fac"){
-				$entity = $this->decodeFac($data);
+			switch ($ext) {
+				case "fac":
+					$entity = $this->decodeFac($data);
+					break;
+				case "ent":
+					$entity = $this->decodeEntity($file, $data);
+					break;
+				case "cat":
+					$entity = $this->decodeCat($data);
+					break;
+				case "smd2":
+					echo "starmade mesh file format";
+					break;
+				default:
+					die("Unknown file formap");
 			}
-			else if($ext == "ent"){
-				$type = $this->getType($file);
-				if($type > 0 && $type < 6){
+			
+			return $entity;
+		}
+		private function decodeEntity($file, $data) {
+			$type = $this->getType($file);
+			$e = array();
+			switch ($type){
+				case 6:
+					$e['type'] = $type;
+					$match = preg_match('/(?:PLAYERCHARACTER_)(.+)(?:.ent)/', $file, $matches);
+					$e['name'] = $matches[1];
+					$e['mass'] = (float)$this->getMass($data);		//get Mass
+					$e['sPos'] = $this->getSecPos($data);		//get sPos
+					$transform = $this->getTransform($data, $e['Type']);
+					$e['transformX'] = $transform['x'];		//get transformX
+					$e['transformY'] = $transform['y'];		//get transformY
+					$e['transformZ'] = $transform['z'];		//get transformZ
+					$e['localPos'] = $transform['o'];			//get LocalPos
+					break;
+				case 7:
+					$match = preg_match('/(?:PLAYERSTATE_)(.+)(?:.ent)/', $file, $matches);
+					$e['name'] = $matches[1];
+					$e['credits'] = $this->getCredits($data);
+					$e['sector'] = $this->getSector($data);
+					$e['fid'] = $this->getPFac($data);
+					break;
+				default:
 					//OBJECTS -----------------------------------------------------------
-					$entity['uid'] = $this->getUID($data);			//get Unique ID
-					$entity['type'] = $type;						//get Type
-					$entity['name'] = $this->getName($data);		//get Name
-					$entity['mass'] = (float)$this->getMass($data);		//get Mass
-					if($type == 2 || $type == 4 || $type == 5){
-						$entity['pw'] = (double)$this->getPw($data);		//get Power Capacity
-						$entity['sh'] = (double)$this->getSh($data);		//get Shield Capacity
+					$e['uid'] = $this->getUID($data);			//get Unique ID
+					$e['type'] = $type;						//get Type
+					$e['name'] = $this->getName($data);		//get Name
+					$e['mass'] = (float)$this->getMass($data);		//get Mass
+					
+					if ($type == 2 || $type == 4 || $type == 5) {
+						$e['pw'] = (double)$this->getPw($data);		//get Power Capacity
+						$e['sh'] = (double)$this->getSh($data);		//get Shield Capacity
 					} else {
-						$entity['pw'] = (double)0;					//set Power Capacity 0
-						$entity['sh'] = (double)0;					//set Shield Capacity 0
+						$e['pw'] = (double)0;					//set Power Capacity 0
+						$e['sh'] = (double)0;					//set Shield Capacity 0
 					}
-					$entity['fid'] = $this->getFID($data);	//get Faction ID
+					
+					$e['fid'] = $this->getFID($data);	//get Faction ID
 					$creation = $this->getCreation($data);
-					if($creation[0] == chr(0)){
+					if ($creation[0] == chr(0)) {
 						$creation[0] = "<system>";
 					}
 					if($creation[1] == chr(0)){
 						$creation[1] = "";
 					}
-					$entity['creator'] = $creation[0];				//get Creator
-					$entity['lastMod'] = $creation[1];				//get Last_Mod
-					$entity['sPos'] = $this->getSecPos($data);		//get sPos
-					$transform = $this->getTransform($data, $entity['type']);
-					$entity['transformX'] = $transform['x'];		//get transformX
-					$entity['transformY'] = $transform['y'];		//get transformY
-					$entity['transformZ'] = $transform['z'];		//get transformZ
-					$entity['localPos'] = $transform['o'];			//get LocalPos
-					$entity['dim'] = $this->getDim($data);			//get DIM
-					$entity['genId'] = $creation[2];				//get Gen_ID
+					$e['creator'] = $creation[0];				//get Creator
+					$e['lastMod'] = $creation[1];				//get Last_Mod
+					$e['sPos'] = $this->getSecPos($data);		//get sPos
+					$transform = $this->getTransform($data, $e['type']);
+					$e['transformX'] = $transform['x'];		//get transformX
+					$e['transformY'] = $transform['y'];		//get transformY
+					$e['transformZ'] = $transform['z'];		//get transformZ
+					$e['localPos'] = $transform['o'];			//get LocalPos
+					$e['dim'] = $this->getDim($data);			//get DIM
+					$e['genId'] = $creation[2];				//get Gen_ID
 					//-------------------------------------------------------------------
-					
-				} else if($type == 6){
-					$entity['type'] = $type;
-					$match = preg_match('/(?:PLAYERCHARACTER_)(.+)(?:.ent)/', $file, $matches);
-					$entity['name'] = $matches[1];
-					$entity['mass'] = (float)$this->getMass($data);		//get Mass
-					$entity['sPos'] = $this->getSecPos($data);		//get sPos
-					$transform = $this->getTransform($data, $entity['Type']);
-					$entity['transformX'] = $transform['x'];		//get transformX
-					$entity['transformY'] = $transform['y'];		//get transformY
-					$entity['transformZ'] = $transform['z'];		//get transformZ
-					$entity['localPos'] = $transform['o'];			//get LocalPos
-				} else if($type == 7){
-					$match = preg_match('/(?:PLAYERSTATE_)(.+)(?:.ent)/', $file, $matches);
-					$entity['name'] = $matches[1];
-					$entity['credits'] = $this->getCredits($data);
-					$entity['sector'] = $this->getSector($data);
-					$entity['fid'] = $this->getPFac($data);
-				} else {
-					return -1;
-				}
+					break;
 			}
-			else if($ext == "cat"){
-				$entity = $this->decodeCat($data);
-			}
-			else if($ext == "smd2"){
-				echo "starmade mesh file format";
-			}
-			else{
-				die("Erreur : Unknow file format");
-			}
-			return $entity;
+			return $e;
 		}
 		
-
 	//============================= Faction Decoder =============================//
 
 		public function decodeFac($data){

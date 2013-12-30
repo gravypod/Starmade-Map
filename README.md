@@ -6,8 +6,9 @@ License: [Creative Common](http://creativecommons.org/licenses/by/3.0/legalcode)
 Version: 0.3  
 Date: 2014-12-30
 
-By Blackcancer and Gravypod
+By Blackcancer and Gravypod  
 support: blackcancer@initsysrev.net
+
 
 
 ### ==> CHANGELOG <==
@@ -34,6 +35,7 @@ support: blackcancer@initsysrev.net
 -	Generate SQL database from starmade file.
 	
 
+
 ### ==> SETUP <==
 
 -	copy all file in your site without index.html.
@@ -57,10 +59,10 @@ support: blackcancer@initsysrev.net
 	Use optional args for list of types you would like excluded (1 = shops, 2 = space station, 3 = asteroid, 4 = planet, 5 = ships).
 	
 
+
 ### ==> DOCUMENTATION <==
 
 StarOS_Map can have different arguments:  
-
 ```javascript
 parentId: (string),
 width: (int),			//default 800
@@ -80,7 +82,6 @@ view:{
 	far: (int)			//default 4100000
 }
 ```
-	
 each arguments are optional except parentId.  
 "width and height" define the size used by canvas.  
 "spawn" is the default point where camera looking.  

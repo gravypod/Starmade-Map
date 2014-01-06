@@ -1,13 +1,13 @@
 /*
-   Product: StarOS Map entity
-   Description: This script id the class object for entity
-   License: http://creativecommons.org/licenses/by/3.0/legalcode
+	Product: StarOS Map entity
+	Description: This script id the class object for entity
+	License: http://creativecommons.org/licenses/by/3.0/legalcode
 
-   FileVersion: 0.3							Date: 2013-12-28
-   By Blackcancer
-  
-   website: 
-   support: blackcancer@initsysrev.net
+	FileVersion: 0.3-rev00001					Date: 2013-12-28
+	By Blackcancer
+
+	website: http://initsysrev.net
+	support: blackcancer@initsysrev.net
 */
 var LoadedTextures = {
 	shop: new THREE.ImageUtils.loadTexture("res/img/starmap/shop.png"),
@@ -23,7 +23,6 @@ var LoadedTextures = {
 		unknown: new THREE.ImageUtils.loadTexture("res/img/starmap/fallPlanet.png"),
 	}
 };
-
 
 var StarmapEntity = function(){
 	this.creator = "unknown",
@@ -48,7 +47,7 @@ var StarmapEntity = function(){
 	this.uid = undefined;
 	this.scale = [120, 120, 1.0];
 	this.planeScale = this.scale;
-	
+
 	StarmapEntity.prototype.init = function(){
 		switch(this.type){
 			case 1:
@@ -63,7 +62,8 @@ var StarmapEntity = function(){
 				break;
 			case 3:
 				this.name = "Asteroid";
-				this.scale = [64, 64, 1.0]
+				this.scale[0] = this.scale[0]/2
+				this.scale[1] = this.scale[1]/2
 				this.planeScale = this.scale;
 				this.texture = LoadedTextures.asteroid;
 				this.typeLabel = "Asteroid";
@@ -104,25 +104,23 @@ var StarmapEntity = function(){
 				break;
 		};
 	},
-	
-	StarmapEntity.prototype.generate = function(camera, scene, scale){
-			texture	 = this.texture,
-			material = new THREE.SpriteMaterial({
-				map: texture,
-				useScreenCoordinates: false
-			});
-			if(this.fid == -1){
-				material.setValues({color: 0xff0000});
-			}
-			this.sprite	 = new THREE.Sprite(material);
-			
-			this.position.x = this.position.x / scale;
-			this.position.y = this.position.y / scale;
-			this.position.z = this.position.z / scale;
-			this.sprite.position = this.position;
-			this.sprite.uid = this.uid;
-			this.sprite.scale.set(this.scale[0], this.scale[1], this.scale[2]);
-			
-			scene.add(this.sprite);
+
+	StarmapEntity.prototype.generate = function(camera, scene){
+		texture	 = this.texture,
+		material = new THREE.SpriteMaterial({
+			map: texture,
+			useScreenCoordinates: false
+		});
+		if(this.fid == -1){
+			material.setValues({color: 0xff0000});
+		}
+		this.sprite	 = new THREE.Sprite(material);
+		this.position.x = this.position.x / 4.7;
+		this.position.y = this.position.y / 4.7;
+		this.position.z = this.position.z / 4.7;
+		this.sprite.position = this.position;
+		this.sprite.uid = this.uid;
+		this.sprite.scale.set(this.scale[0], this.scale[1], this.scale[2]);
+		scene.add(this.sprite);
 	}
 }

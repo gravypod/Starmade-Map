@@ -14,25 +14,19 @@
 
 #sysSelect{
 	position: absolute;
-	top: 65px;
-	width: 110px;
-	height:100px;
+	right: 0px;
+	width: 112px;
+	height:120px;
 	font-size: 12px;
 	font-family: "Neuropolitical Rg";
 	color: #b4ffff;
 	text-shadow: 0 0 10px #80ffff;
 }
 
-#sysSelectLX, #sysSelectLY, #sysSelectLZ{
+#sysSelectLX{
 	position: absolute;
-}
-
-#sysSelectLY{
-	top: 30px;
-}
-
-#sysSelectLZ{
-	top: 60px;
+	left: 0px;
+	top: 0px;
 }
 
 #sysSelectFX, #sysSelectFY, #sysSelectFZ{
@@ -45,12 +39,29 @@
 	border-radius: 5px;
 	box-shadow: 0 0 1px #b4ffff, inset 0 0 1px #b4ffff, 0 0 5px #80ffff;
 	font-family: "Neuropolitical Rg";
-	font-size: 10px;
 	color: #b4ffff;
+	text-shadow: 0 0 10px #80ffff;
+	font-size: 10px;
+}
+
+#sysSelectFX{
+	top: 0px;
+}
+
+#sysSelectLY{
+	position: absolute;
+	left: 0px;
+	top: 30px;
 }
 
 #sysSelectFY{
 	top: 30px;
+}
+
+#sysSelectLZ{
+	position: absolute;
+	left: 0px;
+	top: 60px;
 }
 
 #sysSelectFZ{

@@ -12,6 +12,8 @@ support: blackcancer@initsysrev.net
 
 
 ### ==> CHANGELOG <==
+0.4:
+-	Upgrade to StarOS Map v0.5-rev00001
 
 0.3:
 -	Change generation system to generate only Solar system (chunk 16x16x16).
@@ -65,21 +67,23 @@ support: blackcancer@initsysrev.net
 StarOS_Map can have different arguments:  
 ```javascript
 parentId: (string),
-width: (int),			//default 800
-height: (int),			//default 600
-spawn:{
-	x: (int),			//default 2
-	y: (int),			//default 2
-	z: (int)			//default 2
-},
 showShip: (bool),		//default false
 showAsteroid: (bool),	//default false
+showEntInf:{
+	faction: (bool),	//default false, show faction in Informations:
+	mass: (bool),		//default false, show mass in Informations:
+	power: (bool),		//default false, show power in Informations:
+	shield: (bool)		//default false, show shield in Informations:
+},
+useLogin: (bool),		//default false, use StarOS Login
+debug: (bool),			//default false
 FsKey: (string),		//default "f"
 view:{
 	aspect: (int),  	//default width / height
 	angle: (int),		//default 45
 	near: (int),		//default 0.1
 	far: (int)			//default 4100000
+}
 }
 ```
 each arguments are optional except parentId.  
